@@ -12,13 +12,42 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Session {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  mentorId    String
+  studentId   String?
+  status      String   @default("pending") // pending | active | ended
+  joinCode    String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  mentor   User      @relation("MentorSessions", fields: [mentorId], references: [id])
+  messages Message[]
+}
+
 model User {
+  id         String    @id @default(uuid())
+  name       String
+  email      String    @unique
+  password   String?
+  supabaseId String    @unique
+  role       Role
+  createdAt  DateTime  @default(now())
+  sessions   Session[] @relation("MentorSessions")
+  messages   Message[]
+}
+
+model Message {
   id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  password  String
-  role      Role
+  content   String
+  senderId  String
+  sessionId String
   createdAt DateTime @default(now())
+
+  sender  User    @relation(fields: [senderId], references: [id])
+  session Session @relation(fields: [sessionId], references: [id])
 }
 
 enum Role {
