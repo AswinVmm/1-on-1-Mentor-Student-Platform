@@ -111,7 +111,7 @@ io.on("connection", (socket) => {
 });
 
 // ✅ Middlewares
-app.use(cors());
+// app.use(cors());
 app.use(express.json());
 
 // ✅ Routes
