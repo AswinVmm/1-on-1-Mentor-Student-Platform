@@ -15,7 +15,10 @@ const app = express();
 
 const server = http.createServer(app);
 const io = new Server(server, {
-    cors: { origin: "*" },
+    cors: {
+        origin: "1-on-1-mentor-student-platform.vercel.app",
+        credentials: true,
+    },
 });
 
 io.use(socketAuth);
