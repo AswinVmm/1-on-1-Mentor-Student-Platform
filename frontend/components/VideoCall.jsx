@@ -13,6 +13,7 @@ export default function VideoCall({ sessionId }) {
     const localVideo = useRef();
     const remoteVideo = useRef();
     const peerConnection = useRef();
+    const iceQueue = useRef([]);
 
     const [stream, setStream] = useState(null);
     const [micOn, setMicOn] = useState(true);
@@ -47,6 +48,11 @@ export default function VideoCall({ sessionId }) {
                 await createPeer();
                 await peerConnection.current.setRemoteDescription(offer);
 
+                iceQueue.current.forEach(async (c) => {
+                    await peerConnection.current.addIceCandidate(c);
+                });
+                iceQueue.current = [];
+
                 const answer = await peerConnection.current.createAnswer();
                 await peerConnection.current.setLocalDescription(answer);
 
@@ -55,11 +61,24 @@ export default function VideoCall({ sessionId }) {
 
             newSocket.on("answer", async (answer) => {
                 await peerConnection.current.setRemoteDescription(answer);
+                iceQueue.current.forEach(async (c) => {
+                    await peerConnection.current.addIceCandidate(c);
+                });
+                iceQueue.current = [];
             });
 
+            // newSocket.on("ice-candidate", async (candidate) => {
+            //     if (candidate) {
+            //         await peerConnection.current.addIceCandidate(candidate);
+            //     }
+            // });
             newSocket.on("ice-candidate", async (candidate) => {
-                if (candidate) {
+                if (!peerConnection.current) return;
+
+                if (peerConnection.current.remoteDescription) {
                     await peerConnection.current.addIceCandidate(candidate);
+                } else {
+                    iceQueue.current.push(candidate);
                 }
             });
         };
