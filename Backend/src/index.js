@@ -14,9 +14,15 @@ const sessionRoutes = require("./routes/session.routes");
 const app = express();
 
 const server = http.createServer(app);
+app.use(
+    cors({
+        origin: process.env.FRONTEND_URL,
+        credentials: true,
+    })
+);
 const io = new Server(server, {
     cors: {
-        origin: "https://1-on-1-mentor-student-platform.vercel.app",
+        origin: process.env.FRONTEND_URL,
         credentials: true,
     },
 });
