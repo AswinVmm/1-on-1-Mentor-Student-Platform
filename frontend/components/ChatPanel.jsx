@@ -20,7 +20,7 @@ export default function ChatPanel({ sessionId }) {
 
         setSocket(newSocket);
 
-        newSocket.emit("join-session", sessionId);
+        newSocket.emit("join-room", sessionId);
 
         newSocket.on("chat-history", (msgs) => {
             setMessages(msgs);

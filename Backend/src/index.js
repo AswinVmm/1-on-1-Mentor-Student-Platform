@@ -33,8 +33,16 @@ io.on("connection", (socket) => {
     console.log("User connected:", socket.user?.userId);
 
     // Join session room
-    socket.on("join-session", async (sessionId) => {
+    socket.on("join-room", async (sessionId) => {
         socket.join(sessionId);
+        console.log("Joined room:", sessionId);
+        const clients = io.sockets.adapter.rooms.get(sessionId);
+
+        if (clients && clients.size === 2) {
+            socket.to(sessionId).emit("ready");
+        }
+
+        socket.to(sessionId).emit("user-joined");
 
         // 🔥 Send previous messages
         const messages = await prisma.message.findMany({
@@ -71,10 +79,10 @@ io.on("connection", (socket) => {
         socket.to(sessionId).emit("ice-candidate", candidate);
     });
 
-    socket.on("join-video-room", (sessionId) => {
-        socket.join(sessionId);
-        console.log("Joined video room:", sessionId);
-    });
+    // socket.on("join-video-room", (sessionId) => {
+    //     socket.join(sessionId);
+    //     console.log("Joined video room:", sessionId);
+    // });
     // 🔥 SEND MESSAGE
     socket.on("send-message", ({ sessionId, content }) => {
         io.to(sessionId).emit("receive-message", {

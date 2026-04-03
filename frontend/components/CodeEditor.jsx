@@ -66,7 +66,7 @@ export default function CodeEditor({ sessionId }) {
 
         setSocket(newSocket);
 
-        newSocket.emit("join-session", sessionId);
+        newSocket.emit("join-room", sessionId);
 
         newSocket.on("code-update", (newCode) => {
             setCode(newCode);

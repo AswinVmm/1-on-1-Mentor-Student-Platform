@@ -36,7 +36,7 @@ export default function VideoCall({ sessionId }) {
             socketRef.current = newSocket;
 
 
-            newSocket.emit("join-session", sessionId);
+            newSocket.emit("join-room", sessionId);
 
             newSocket.on("call-ended", () => {
                 alert("Call ended");
