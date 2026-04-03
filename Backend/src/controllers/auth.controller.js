@@ -57,6 +57,10 @@ exports.login = async (req, res) => {
             where: { email },
         });
 
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
         // 3. Create custom JWT (for your backend)
         const token = jwt.sign(
             {
@@ -74,7 +78,7 @@ exports.login = async (req, res) => {
             role: user.role,
         });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ message: err.message });
     }
 };
 
@@ -106,6 +110,6 @@ exports.register = async (req, res) => {
             user,
         });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ message: err.message });
     }
 };

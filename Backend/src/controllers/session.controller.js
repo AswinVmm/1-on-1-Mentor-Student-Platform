@@ -47,7 +47,7 @@ exports.createSession = async (req, res) => {
         });
     } catch (err) {
         console.log("CREATE SESSION ERROR:", err.message);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ message: err.message });
     }
 };
 
@@ -81,7 +81,7 @@ exports.joinSession = async (req, res) => {
             session: updated,
         });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ message: err.message });
     }
 };
 
@@ -108,7 +108,7 @@ exports.endSession = async (req, res) => {
             session: updated,
         });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ message: err.message });
     }
 };
 
@@ -126,6 +126,6 @@ exports.getActiveSessions = async (req, res) => {
 
         res.json(sessions);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ message: err.message });
     }
 };
