@@ -52,8 +52,9 @@ export default function Login() {
     };
 
     return (
-        <div style={{ padding: "20px" }}>
-            <h2>Login</h2>
+        // style = {{ padding: "20px" }}
+        <div >
+            <h2 className="bg-amber-400">Login</h2>
 
             <input
                 placeholder="Email"
