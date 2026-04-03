@@ -36,21 +36,6 @@ io.on("connection", (socket) => {
     socket.on("join-session", async (sessionId) => {
         socket.join(sessionId);
 
-        // 🔥 OFFER (caller → receiver)
-        socket.on("offer", ({ sessionId, offer }) => {
-            socket.to(sessionId).emit("offer", offer);
-        });
-
-        // 🔥 ANSWER (receiver → caller)
-        socket.on("answer", ({ sessionId, answer }) => {
-            socket.to(sessionId).emit("answer", answer);
-        });
-
-        // 🔥 ICE CANDIDATES
-        socket.on("ice-candidate", ({ sessionId, candidate }) => {
-            socket.to(sessionId).emit("ice-candidate", candidate);
-        });
-
         // 🔥 Send previous messages
         const messages = await prisma.message.findMany({
             where: { sessionId },
@@ -70,6 +55,22 @@ io.on("connection", (socket) => {
             socket.emit("code-update", sessionCodeMap[sessionId]);
         }
     });
+
+    // 🔥 OFFER (caller → receiver)
+    socket.on("offer", ({ sessionId, offer }) => {
+        socket.to(sessionId).emit("offer", offer);
+    });
+
+    // 🔥 ANSWER (receiver → caller)
+    socket.on("answer", ({ sessionId, answer }) => {
+        socket.to(sessionId).emit("answer", answer);
+    });
+
+    // 🔥 ICE CANDIDATES
+    socket.on("ice-candidate", ({ sessionId, candidate }) => {
+        socket.to(sessionId).emit("ice-candidate", candidate);
+    });
+
     socket.on("join-video-room", (sessionId) => {
         socket.join(sessionId);
         console.log("Joined video room:", sessionId);
