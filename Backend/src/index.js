@@ -39,7 +39,11 @@ io.on("connection", (socket) => {
         const clients = io.sockets.adapter.rooms.get(sessionId);
 
         if (clients && clients.size === 2) {
-            socket.to(sessionId).emit("ready");
+            const users = Array.from(clients);
+
+            // First user becomes caller
+            io.to(users[0]).emit("start-call", { isCaller: true });
+            io.to(users[1]).emit("start-call", { isCaller: false });
         }
 
         socket.to(sessionId).emit("user-joined");

@@ -26,7 +26,16 @@ export default function VideoCall({ sessionId }) {
     useEffect(() => {
         // let newSocket;
         const init = async () => {
-            await startMedia();
+            // await startMedia();
+            const media = await navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: true,
+            });
+            setStream(media);
+
+            if (localVideo.current) {
+                localVideo.current.srcObject = media;
+            }
             const token = localStorage.getItem("token");
 
             const newSocket = io(process.env.NEXT_PUBLIC_BASE_URL, {
@@ -51,7 +60,7 @@ export default function VideoCall({ sessionId }) {
                 iceQueue.current.forEach(async (c) => {
                     await peerConnection.current.addIceCandidate(c);
                 });
-                iceQueue.current = [];
+                iceQueue.current.length = 0;
 
                 const answer = await peerConnection.current.createAnswer();
                 await peerConnection.current.setLocalDescription(answer);
@@ -64,7 +73,20 @@ export default function VideoCall({ sessionId }) {
                 iceQueue.current.forEach(async (c) => {
                     await peerConnection.current.addIceCandidate(c);
                 });
-                iceQueue.current = [];
+                iceQueue.current.length = 0;
+            });
+
+            newSocket.on("start-call", async ({ isCaller }) => {
+                console.log("Start call, caller:", isCaller);
+
+                await createPeer();
+
+                if (isCaller) {
+                    const offer = await peerConnection.current.createOffer();
+                    await peerConnection.current.setLocalDescription(offer);
+
+                    socketRef.current.emit("offer", { sessionId, offer });
+                }
             });
 
             // newSocket.on("ice-candidate", async (candidate) => {
@@ -112,13 +134,15 @@ export default function VideoCall({ sessionId }) {
                 { urls: "stun:stun.l.google.com:19302" }
             ],
         });
-
+        if (!stream) return;
         stream.getTracks().forEach((track) => {
             peerConnection.current.addTrack(track, stream);
         });
 
         peerConnection.current.ontrack = (event) => {
-            remoteVideo.current.srcObject = event.streams[0];
+            if (remoteVideo.current && !remoteVideo.current.srcObject) {
+                remoteVideo.current.srcObject = event.streams[0];
+            }
         };
 
         peerConnection.current.onicecandidate = (event) => {
@@ -132,14 +156,14 @@ export default function VideoCall({ sessionId }) {
     };
     // send offer
     // 📞 Start Call (Caller)
-    const startCall = async () => {
-        await createPeer();
+    // const startCall = async () => {
+    //     await createPeer();
 
-        const offer = await peerConnection.current.createOffer();
-        await peerConnection.current.setLocalDescription(offer);
+    //     const offer = await peerConnection.current.createOffer();
+    //     await peerConnection.current.setLocalDescription(offer);
 
-        socketRef.current.emit("offer", { sessionId, offer });
-    };
+    //     socketRef.current.emit("offer", { sessionId, offer });
+    // };
 
     // 🎤 Toggle Mic
     const toggleMic = () => {
@@ -163,6 +187,7 @@ export default function VideoCall({ sessionId }) {
             <video
                 ref={remoteVideo}
                 autoPlay
+                playsInline
                 className="w-full h-full object-cover"
             />
 
@@ -174,7 +199,7 @@ export default function VideoCall({ sessionId }) {
                 className="w-40 h-32 absolute bottom-2 right-2 border-2"
             />
             <div>
-                <button onClick={startCall}>Start Call</button>
+                {/* <button onClick={startCall}>Start Call</button> */}
                 <button onClick={toggleMic}>Mic
                     {micOn ? "Mute Mic" : "Unmute Mic"}
                 </button>
