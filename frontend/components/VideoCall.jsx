@@ -165,7 +165,8 @@ export default function VideoCall({ sessionId }) {
                 <button
                     className="bg-red-500 text-white px-4 py-2 rounded"
                     onClick={() => {
-                        socket.emit("end-call", sessionId);
+                        // socket.emit("end-call", sessionId);
+                        socketRef.current?.emit("end-call", sessionId);
                         window.location.href = "/";
                     }}
                 >
