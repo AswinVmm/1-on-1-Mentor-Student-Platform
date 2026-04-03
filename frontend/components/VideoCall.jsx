@@ -104,14 +104,14 @@ export default function VideoCall({ sessionId }) {
 
         peerConnection.current.onicecandidate = (event) => {
             if (event.candidate) {
-                newSocket.emit("ice-candidate", {
+                socketRef.current.emit("ice-candidate", {
                     sessionId,
                     candidate: event.candidate,
                 });
             }
         };
     };
-
+    // send offer
     // 📞 Start Call (Caller)
     const startCall = async () => {
         await createPeer();
@@ -119,7 +119,7 @@ export default function VideoCall({ sessionId }) {
         const offer = await peerConnection.current.createOffer();
         await peerConnection.current.setLocalDescription(offer);
 
-        socket.emit("offer", { sessionId, offer });
+        socketRef.current.emit("offer", { sessionId, offer });
     };
 
     // 🎤 Toggle Mic

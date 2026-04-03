@@ -35,9 +35,6 @@ io.on("connection", (socket) => {
     // Join session room
     socket.on("join-session", async (sessionId) => {
         socket.join(sessionId);
-        socket.on("join-video-room", (sessionId) => {
-            socket.join(sessionId);
-        });
 
         // 🔥 OFFER (caller → receiver)
         socket.on("offer", ({ sessionId, offer }) => {
@@ -73,7 +70,10 @@ io.on("connection", (socket) => {
             socket.emit("code-update", sessionCodeMap[sessionId]);
         }
     });
-
+    socket.on("join-video-room", (sessionId) => {
+        socket.join(sessionId);
+        console.log("Joined video room:", sessionId);
+    });
     // 🔥 SEND MESSAGE
     socket.on("send-message", ({ sessionId, content }) => {
         io.to(sessionId).emit("receive-message", {
