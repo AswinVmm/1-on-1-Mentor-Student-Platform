@@ -5,7 +5,6 @@ const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 const socketAuth = require("./utils/socket");
-// console.log("DATABASE_URL =", process.env.DATABASE_URL);
 
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/user.routes");
@@ -56,24 +55,7 @@ io.on("connection", (socket) => {
                 // First user = caller
                 socket.emit("init", { isCaller: true });
             }
-
-            // if (users.length === 2) {
-            //     // Second user = receiver
-            //     socket.emit("init", { isCaller: false });
-
-            //     // Tell caller to start
-            //     socket.to(users[0]).emit("start-call");
-            // }
         }
-        // if (clients && clients.size === 2) {
-        //     // Tell both users to start
-        //     io.to(roomId).emit("ready");
-        //     // const users = Array.from(clients);
-
-        //     // // First user becomes caller
-        //     // io.to(users[0]).emit("start-call", { isCaller: true });
-        //     // io.to(users[1]).emit("start-call", { isCaller: false });
-        // }
     });
 
     // 🔥 OFFER (caller → receiver)
@@ -103,12 +85,6 @@ io.on("connection", (socket) => {
 
     // CODE SYNC
     socket.on("code-change", ({ sessionId, code }) => {
-        // Throttle updates to prevent excessive emissions
-        // const now = Date.now();
-        // if (!global.lastUpdateRef) global.lastUpdateRef = { current: 0 };
-        // if (now - global.lastUpdateRef.current < 200) return;
-        // global.lastUpdateRef.current = now; now made change
-
         // 🧠 Last-write-wins strategy
         sessionCodeMap[sessionId] = code;
         socket.to(sessionId).emit("code-update", code);
@@ -123,42 +99,7 @@ io.on("connection", (socket) => {
         console.log("User disconnected");
     });
 
-    // socket.to(roomId).emit("user-joined");
-
-    // 🔥 Send previous messages
-    // const messages = prisma.message.findMany({
-    //     where: { sessionId },
-    //     orderBy: { createdAt: "asc" },
-    // });
-
-    // socket.emit("chat-history", messages);
-
-    // 🔥 System message
-    // socket.to(sessionId).emit("system-message", {
-    //     content: `${socket.user.userId} joined`,
-    //     createdAt: new Date(),
-    // });
-
-    // Send existing code
-    // if (sessionCodeMap[sessionId]) {
-    //     socket.emit("code-update", sessionCodeMap[sessionId]);
-    // }
 });
-
-// socket.on("join-video-room", (sessionId) => {
-//     socket.join(sessionId);
-//     console.log("Joined video room:", sessionId);
-// });
-
-
-
-// socket.on("end-call", (sessionId) => {
-//     io.to(sessionId).emit("call-ended");
-// });
-
-// socket.on("message", (data) => {
-//     console.log(data);
-// });
 
 
 // ✅ Middlewares

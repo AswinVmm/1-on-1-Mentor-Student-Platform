@@ -2,13 +2,6 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
-// const socket = io(process.env.BASE_URL);
-// const socket = io(process.env.NEXT_PUBLIC_BASE_URL, {
-//     auth: {
-//         token: localStorage.getItem("token"),
-//     },
-// });
-
 export default function VideoCall({ sessionId }) {
     const localVideo = useRef();
     const remoteVideo = useRef();
@@ -26,7 +19,7 @@ export default function VideoCall({ sessionId }) {
     const videoRef = useRef(null);
 
     useEffect(() => {
-        // let newSocket;
+
         const init = async () => {
             // Get Media();
             const stream = await navigator.mediaDevices.getUserMedia({
@@ -35,9 +28,8 @@ export default function VideoCall({ sessionId }) {
             });
             setStream(stream);
 
-            // if (localVideo.current) {
             localVideo.current.srcObject = stream;
-            // }
+
             const token = localStorage.getItem("token");
             // 🔌 Socket
             const socket = io(process.env.NEXT_PUBLIC_BASE_URL, {
@@ -46,13 +38,6 @@ export default function VideoCall({ sessionId }) {
                 },
             });
             socketRef.current = socket;
-            // {
-            //     // auth: { token },
-            // }
-
-            // setSocket(newSocket);
-            // socketRef.current = newSocket;
-
 
             socket.emit("join-room", sessionId);
 
@@ -67,19 +52,15 @@ export default function VideoCall({ sessionId }) {
                         { urls: "stun:stun.l.google.com:19302" }
                     ],
                 });
-                // if (!stream) return;
-                // Add tracks
+
                 stream.getTracks().forEach((track) => {
                     peer.addTrack(track, stream);
                 });
-                // stream.getTracks().forEach((track) => {
-                //     peer.addTrack(track, stream);
-                // });
-                // Remote stream
+
                 peer.ontrack = (event) => {
-                    // if (remoteVideo.current && !remoteVideo.current.srcObject) {
+
                     remoteVideo.current.srcObject = event.streams[0];
-                    // }
+
                 };
                 // ICE
                 peer.onicecandidate = (event) => {
@@ -152,91 +133,12 @@ export default function VideoCall({ sessionId }) {
                 console.log("ROLE:", isCaller.current);
             });
 
-            // newSocket.on("offer", async (offer) => {
-            //     await createPeer();
-            //     await peerConnection.current.setRemoteDescription(offer);
-
-            //     iceQueue.current.forEach(async (c) => {
-            //         await peerConnection.current.addIceCandidate(c);
-            //     });
-            //     iceQueue.current.length = 0;
-
-            //     const answer = await peerConnection.current.createAnswer();
-            //     await peerConnection.current.setLocalDescription(answer);
-
-            //     socketRef.current.emit("answer", { sessionId, answer });
-            // });
-
-            // newSocket.on("answer", async (answer) => {
-            //     await peerConnection.current.setRemoteDescription(answer);
-            //     iceQueue.current.forEach(async (c) => {
-            //         await peerConnection.current.addIceCandidate(c);
-            //     });
-            //     iceQueue.current.length = 0;
-            // });
-
-            // newSocket.on("start-call", async ({ isCaller }) => {
-            //     console.log("Start call, caller:", isCaller);
-
-            //     await createPeer();
-
-            //     if (isCaller) {
-            //         const offer = await peerConnection.current.createOffer();
-            //         await peerConnection.current.setLocalDescription(offer);
-
-            //         socketRef.current.emit("offer", { sessionId, offer });
-            //     }
-            // });
-
-            // newSocket.on("ice-candidate", async (candidate) => {
-            //     if (candidate) {
-            //         await peerConnection.current.addIceCandidate(candidate);
-            //     }
-            // });
-            // newSocket.on("ice-candidate", async (candidate) => {
-            //     if (!peerConnection.current) return;
-
-            //     if (peerConnection.current.remoteDescription) {
-            //         await peerConnection.current.addIceCandidate(candidate);
-            //     } else {
-            //         iceQueue.current.push(candidate);
-            //     }
-            // });
         };
 
         init();
 
         return () => socketRef.current?.disconnect();
     }, [sessionId]);
-
-    // const startMedia = async () => {
-    //     try {
-    //         const media = await navigator.mediaDevices.getUserMedia({
-    //             video: true,
-    //             audio: true,
-    //         });
-
-    //         setStream(media);
-
-    //         if (localVideo.current) {
-    //             localVideo.current.srcObject = media;
-    //         }
-    //     } catch (err) {
-    //         console.error("Camera error:", err);
-    //     }
-    // };
-
-
-    // send offer
-    // 📞 Start Call (Caller)
-    // const startCall = async () => {
-    //     await createPeer();
-
-    //     const offer = await peerConnection.current.createOffer();
-    //     await peerConnection.current.setLocalDescription(offer);
-
-    //     socketRef.current.emit("offer", { sessionId, offer });
-    // };
 
     // 🎤 Toggle Mic
     const toggleMic = () => {
@@ -254,9 +156,7 @@ export default function VideoCall({ sessionId }) {
         <div className="relative h-[300px] bg-black">
             {/* Remote video (BIG) */}
             <h3>Video Call</h3>
-            {/* 
-            <video ref={localVideo} autoPlay muted width="200" />
-            <video ref={remoteVideo} autoPlay width="200" /> */}
+
             <video
                 ref={remoteVideo}
                 autoPlay
@@ -272,7 +172,7 @@ export default function VideoCall({ sessionId }) {
                 className="w-40 h-32 absolute bottom-2 right-2 border-2"
             />
             <div>
-                {/* <button onClick={startCall}>Start Call</button> */}
+
                 <button onClick={toggleMic}>Mic
                     {micOn ? "Mute Mic" : "Unmute Mic"}
                 </button>
@@ -282,7 +182,7 @@ export default function VideoCall({ sessionId }) {
                 <button
                     className="bg-red-500 text-white px-4 py-2 rounded"
                     onClick={() => {
-                        // socket.emit("end-call", sessionId);
+
                         socketRef.current?.emit("end-call", sessionId);
                         window.location.href = "/";
                     }}
