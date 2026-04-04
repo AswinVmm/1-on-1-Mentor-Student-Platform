@@ -15,6 +15,7 @@ export default function VideoCall({ sessionId }) {
     const peerConnection = useRef();
     const iceQueue = useRef([]);
     const socketRef = useRef();
+    const isCaller = useRef(false);
 
     const [stream, setStream] = useState(null);
     const [micOn, setMicOn] = useState(true);
@@ -62,8 +63,11 @@ export default function VideoCall({ sessionId }) {
                         { urls: "stun:stun.l.google.com:19302" }
                     ],
                 });
-                if (!stream) return;
+                // if (!stream) return;
                 // Add tracks
+                stream.getTracks().forEach((track) => {
+                    peer.addTrack(track, stream);
+                });
                 stream.getTracks().forEach((track) => {
                     peer.addTrack(track, stream);
                 });
@@ -85,7 +89,8 @@ export default function VideoCall({ sessionId }) {
                 return peer;
             };
             // 🟢 When both users joined
-            socket.on("ready", async () => {
+            socket.on("start-call", async () => {
+                if (!isCaller.current) return;
                 peerConnection.current = createPeer();
 
                 const offer = await peerConnection.current.createOffer();
@@ -122,6 +127,10 @@ export default function VideoCall({ sessionId }) {
                 if (candidate) {
                     await peerConnection.current.addIceCandidate(candidate);
                 }
+            });
+
+            socket.on("init", ({ isCaller: caller }) => {
+                isCaller.current = caller;
             });
 
             // newSocket.on("offer", async (offer) => {

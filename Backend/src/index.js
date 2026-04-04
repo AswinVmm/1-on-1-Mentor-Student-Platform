@@ -40,15 +40,31 @@ io.on("connection", (socket) => {
         console.log("Joined room:", roomId);
         const clients = io.sockets.adapter.rooms.get(roomId);
 
-        if (clients && clients.size === 2) {
-            // Tell both users to start
-            io.to(roomId).emit("ready");
-            // const users = Array.from(clients);
+        if (clients) {
+            const users = Array.from(clients);
 
-            // // First user becomes caller
-            // io.to(users[0]).emit("start-call", { isCaller: true });
-            // io.to(users[1]).emit("start-call", { isCaller: false });
+            if (users.length === 1) {
+                // First user = caller
+                socket.emit("init", { isCaller: true });
+            }
+
+            if (users.length === 2) {
+                // Second user = receiver
+                socket.emit("init", { isCaller: false });
+
+                // Tell caller to start
+                socket.to(users[0]).emit("start-call");
+            }
         }
+        // if (clients && clients.size === 2) {
+        //     // Tell both users to start
+        //     io.to(roomId).emit("ready");
+        //     // const users = Array.from(clients);
+
+        //     // // First user becomes caller
+        //     // io.to(users[0]).emit("start-call", { isCaller: true });
+        //     // io.to(users[1]).emit("start-call", { isCaller: false });
+        // }
     });
 
     // 🔥 OFFER (caller → receiver)
