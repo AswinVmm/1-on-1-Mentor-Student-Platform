@@ -10,7 +10,7 @@ const socketAuth = (socket, next) => {
         console.log("DECODED:", decoded); // 🔥 DEBUG
 
         socket.user = {
-            userId: decoded.userId,
+            userId: decoded.id,
             role: decoded.role,
         }
 
