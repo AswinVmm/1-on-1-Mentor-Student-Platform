@@ -28,9 +28,6 @@ export default function StudentDashboard() {
     }, []);
 
     const handleLogout = () => {
-        // localStorage.removeItem("token");
-        // localStorage.removeItem("role");
-        // localStorage.removeItem("userId");
         localStorage.clear();
         router.push("/login");
     };
@@ -86,8 +83,7 @@ export default function StudentDashboard() {
                         Logout
                     </button>
                 </div>
-                {/* <br /><br /> */}
-                <div className="flex gap-2 mb-6">
+                {/* <div className="flex gap-2 mb-6">
                     <input
                         className="flex-1 border p-2 rounded"
                         placeholder="Enter Join Code"
@@ -97,7 +93,7 @@ export default function StudentDashboard() {
                     <button onClick={joinSession} className="bg-blue-500 text-white px-4 rounded">
                         Join
                     </button>
-                </div>
+                </div> */}
                 <h3 className="font-semibold mb-3">Active Sessions</h3>
 
                 {sessions.length === 0 ? (
@@ -110,7 +106,6 @@ export default function StudentDashboard() {
                             <button
                                 onClick={() => joinSessionByCode(session.joinCode)}
                                 className="bg-green-500 text-white px-3 py-1 rounded"
-                            // onClick={() => router.push(`/session/${session.code}`)}
                             >
                                 Join
                             </button>
