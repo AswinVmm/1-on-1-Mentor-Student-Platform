@@ -8,7 +8,10 @@ const socketAuth = (socket, next) => {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        socket.user = decoded;
+        socket.user = {
+            userId: decoded.userId,
+            role: decoded.role,
+        }
 
         next();
     } catch (err) {
