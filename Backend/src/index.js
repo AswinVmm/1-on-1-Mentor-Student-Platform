@@ -51,19 +51,47 @@ io.on("connection", (socket) => {
     });
 
     // 🔥 OFFER (caller → receiver)
-    socket.on("offer", ({ sessionId, offer }) => {
-        socket.to(sessionId).emit("offer", offer);
+    socket.on("offer", ({ roomId, offer }) => {
+        socket.to(roomId).emit("offer", offer);
     });
 
     // 🔥 ANSWER (receiver → caller)
-    socket.on("answer", ({ sessionId, answer }) => {
-        socket.to(sessionId).emit("answer", answer);
+    socket.on("answer", ({ roomId, answer }) => {
+        socket.to(roomId).emit("answer", answer);
     });
 
     // 🔥 ICE CANDIDATES
-    socket.on("ice-candidate", ({ sessionId, candidate }) => {
-        socket.to(sessionId).emit("ice-candidate", candidate);
+    socket.on("ice-candidate", ({ roomId, candidate }) => {
+        socket.to(roomId).emit("ice-candidate", candidate);
     });
+
+    // 🔥 SEND MESSAGE
+    socket.on("send-message", ({ sessionId, content }) => {
+        io.to(sessionId).emit("receive-message", {
+            content,
+            sessionId,
+            senderId: socket.user.userId,
+        });
+    });
+
+
+    // CODE SYNC
+    socket.on("code-change", ({ sessionId, code }) => {
+        // Throttle updates to prevent excessive emissions
+        // const now = Date.now();
+        // if (!global.lastUpdateRef) global.lastUpdateRef = { current: 0 };
+        // if (now - global.lastUpdateRef.current < 200) return;
+        // global.lastUpdateRef.current = now; now made change
+
+        // 🧠 Last-write-wins strategy
+        sessionCodeMap[sessionId] = code;
+        socket.to(sessionId).emit("code-update", code);
+    });
+
+    socket.on("cursor-move", (data) => {
+        socket.to(data.sessionId).emit("cursor-update", data.position);
+    });
+
     // 🔥 DISCONNECT
     socket.on("disconnect", () => {
         console.log("User disconnected");
@@ -72,10 +100,10 @@ io.on("connection", (socket) => {
     // socket.to(roomId).emit("user-joined");
 
     // 🔥 Send previous messages
-    const messages = prisma.message.findMany({
-        where: { sessionId },
-        orderBy: { createdAt: "asc" },
-    });
+    // const messages = prisma.message.findMany({
+    //     where: { sessionId },
+    //     orderBy: { createdAt: "asc" },
+    // });
 
     socket.emit("chat-history", messages);
 
@@ -95,43 +123,16 @@ io.on("connection", (socket) => {
 //     socket.join(sessionId);
 //     console.log("Joined video room:", sessionId);
 // });
-// 🔥 SEND MESSAGE
-socket.on("send-message", ({ sessionId, content }) => {
-    io.to(sessionId).emit("receive-message", {
 
-        content,
-        sessionId,
-        senderId: socket.user.userId,
-
-    });
-});
 
 
 // socket.on("end-call", (sessionId) => {
 //     io.to(sessionId).emit("call-ended");
 // });
 
-// Handle code changes
-socket.on("code-change", ({ sessionId, code }) => {
-    // Throttle updates to prevent excessive emissions
-    const now = Date.now();
-    if (!global.lastUpdateRef) global.lastUpdateRef = { current: 0 };
-    if (now - global.lastUpdateRef.current < 200) return;
-    global.lastUpdateRef.current = now;
-
-    // 🧠 Last-write-wins strategy
-    sessionCodeMap[sessionId] = code;
-
-    socket.to(sessionId).emit("code-update", code);
-});
-
-socket.on("cursor-move", (data) => {
-    socket.to(data.sessionId).emit("cursor-update", data.position);
-});
-
-socket.on("message", (data) => {
-    console.log(data);
-});
+// socket.on("message", (data) => {
+//     console.log(data);
+// });
 
 
 // ✅ Middlewares

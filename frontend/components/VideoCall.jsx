@@ -51,7 +51,7 @@ export default function VideoCall({ sessionId }) {
 
             socket.emit("join-room", sessionId);
 
-            newSocket.on("call-ended", () => {
+            socket.on("call-ended", () => {
                 alert("Call ended");
                 window.location.href = "/";
             });
@@ -86,10 +86,10 @@ export default function VideoCall({ sessionId }) {
             };
             // 🟢 When both users joined
             socket.on("ready", async () => {
-                pc.current = createPeer();
+                peerConnection.current = createPeer();
 
-                const offer = await pc.current.createOffer();
-                await pc.current.setLocalDescription(offer);
+                const offer = await peerConnection.current.createOffer();
+                await peerConnection.current.setLocalDescription(offer);
 
                 socket.emit("offer", {
                     roomId: sessionId,
@@ -99,12 +99,12 @@ export default function VideoCall({ sessionId }) {
 
             // 📩 Receive offer
             socket.on("offer", async (offer) => {
-                pc.current = createPeer();
+                peerConnection.current = createPeer();
 
-                await pc.current.setRemoteDescription(offer);
+                await peerConnection.current.setRemoteDescription(offer);
 
-                const answer = await pc.current.createAnswer();
-                await pc.current.setLocalDescription(answer);
+                const answer = await peerConnection.current.createAnswer();
+                await peerConnection.current.setLocalDescription(answer);
 
                 socket.emit("answer", {
                     roomId: sessionId,
@@ -114,13 +114,13 @@ export default function VideoCall({ sessionId }) {
 
             // 📩 Receive answer
             socket.on("answer", async (answer) => {
-                await pc.current.setRemoteDescription(answer);
+                await peerConnection.current.setRemoteDescription(answer);
             });
 
             // 📩 ICE
             socket.on("ice-candidate", async (candidate) => {
                 if (candidate) {
-                    await pc.current.addIceCandidate(candidate);
+                    await peerConnection.current.addIceCandidate(candidate);
                 }
             });
 
