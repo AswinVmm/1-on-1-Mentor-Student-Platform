@@ -58,7 +58,14 @@ exports.joinSession = async (req, res) => {
 
         const session = await prisma.session.findUnique({
             where: { joinCode: code },
+            include: { mentor: true }
         });
+
+        if (!session.mentor) {
+            return res.status(400).json({
+                message: "Mentor has not started the session yet"
+            });
+        }
 
         if (!session) {
             return res.status(404).json({ message: "Session not found" });

@@ -37,8 +37,17 @@ io.on("connection", (socket) => {
     // Join session room
     socket.on("join-room", (roomId) => {
         socket.join(roomId);
+        const role = socket.user.role;
         console.log("Joined room:", roomId);
         const clients = io.sockets.adapter.rooms.get(roomId);
+        if (role === "MENTOR") {
+            socket.emit("init", { isCaller: true });
+        } else {
+            socket.emit("init", { isCaller: false });
+
+            // notify mentor to start
+            socket.to(roomId).emit("start-call");
+        }
 
         if (clients) {
             const users = Array.from(clients);
@@ -48,13 +57,13 @@ io.on("connection", (socket) => {
                 socket.emit("init", { isCaller: true });
             }
 
-            if (users.length === 2) {
-                // Second user = receiver
-                socket.emit("init", { isCaller: false });
+            // if (users.length === 2) {
+            //     // Second user = receiver
+            //     socket.emit("init", { isCaller: false });
 
-                // Tell caller to start
-                socket.to(users[0]).emit("start-call");
-            }
+            //     // Tell caller to start
+            //     socket.to(users[0]).emit("start-call");
+            // }
         }
         // if (clients && clients.size === 2) {
         //     // Tell both users to start

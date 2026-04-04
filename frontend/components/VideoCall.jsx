@@ -40,7 +40,11 @@ export default function VideoCall({ sessionId }) {
             // }
             const token = localStorage.getItem("token");
             // 🔌 Socket
-            const socket = io(process.env.NEXT_PUBLIC_BASE_URL);
+            const socket = io(process.env.NEXT_PUBLIC_BASE_URL, {
+                auth: {
+                    token: localStorage.getItem("token"),
+                },
+            });
             socketRef.current = socket;
             // {
             //     // auth: { token },
@@ -68,9 +72,9 @@ export default function VideoCall({ sessionId }) {
                 stream.getTracks().forEach((track) => {
                     peer.addTrack(track, stream);
                 });
-                stream.getTracks().forEach((track) => {
-                    peer.addTrack(track, stream);
-                });
+                // stream.getTracks().forEach((track) => {
+                //     peer.addTrack(track, stream);
+                // });
                 // Remote stream
                 peer.ontrack = (event) => {
                     // if (remoteVideo.current && !remoteVideo.current.srcObject) {
@@ -104,10 +108,14 @@ export default function VideoCall({ sessionId }) {
 
             // 📩 Receive offer
             socket.on("offer", async (offer) => {
+                console.log("Received offer");
                 peerConnection.current = createPeer();
 
                 await peerConnection.current.setRemoteDescription(offer);
-
+                iceQueue.current.forEach(async (c) => {
+                    await peerConnection.current.addIceCandidate(c);
+                });
+                iceQueue.current = [];
                 const answer = await peerConnection.current.createAnswer();
                 await peerConnection.current.setLocalDescription(answer);
 
@@ -119,18 +127,29 @@ export default function VideoCall({ sessionId }) {
 
             // 📩 Receive answer
             socket.on("answer", async (answer) => {
+                console.log("Received answer");
                 await peerConnection.current.setRemoteDescription(answer);
+                iceQueue.current.forEach(async (c) => {
+                    await peerConnection.current.addIceCandidate(c);
+                });
+                iceQueue.current = [];
             });
 
             // 📩 ICE
             socket.on("ice-candidate", async (candidate) => {
-                if (candidate) {
+                console.log("ICE received");
+                if (!peerConnection.current) return;
+
+                if (peerConnection.current.remoteDescription) {
                     await peerConnection.current.addIceCandidate(candidate);
+                } else {
+                    iceQueue.current.push(candidate);
                 }
             });
 
             socket.on("init", ({ isCaller: caller }) => {
                 isCaller.current = caller;
+                console.log("ROLE:", isCaller.current);
             });
 
             // newSocket.on("offer", async (offer) => {
