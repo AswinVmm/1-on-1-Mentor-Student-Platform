@@ -14,95 +14,166 @@ export default function VideoCall({ sessionId }) {
     const remoteVideo = useRef();
     const peerConnection = useRef();
     const iceQueue = useRef([]);
+    const socketRef = useRef();
 
     const [stream, setStream] = useState(null);
     const [micOn, setMicOn] = useState(true);
     const [camOn, setCamOn] = useState(true);
     const [socket, setSocket] = useState(null);
-    const socketRef = useRef(null);
+
 
     const videoRef = useRef(null);
 
     useEffect(() => {
         // let newSocket;
         const init = async () => {
-            // await startMedia();
-            const media = await navigator.mediaDevices.getUserMedia({
+            // Get Media();
+            const stream = await navigator.mediaDevices.getUserMedia({
                 video: true,
                 audio: true,
             });
-            setStream(media);
+            // setStream(stream);
 
-            if (localVideo.current) {
-                localVideo.current.srcObject = media;
-            }
+            // if (localVideo.current) {
+            localVideo.current.srcObject = stream;
+            // }
             const token = localStorage.getItem("token");
-
-            const newSocket = io(process.env.NEXT_PUBLIC_BASE_URL, {
-                auth: { token },
-            });
+            // 🔌 Socket
+            const socket = io(process.env.NEXT_PUBLIC_BASE_URL);
+            socketRef.current = socket;
+            // {
+            //     // auth: { token },
+            // }
 
             // setSocket(newSocket);
-            socketRef.current = newSocket;
+            // socketRef.current = newSocket;
 
 
-            newSocket.emit("join-room", sessionId);
+            socket.emit("join-room", sessionId);
 
             newSocket.on("call-ended", () => {
                 alert("Call ended");
                 window.location.href = "/";
             });
-
-            newSocket.on("offer", async (offer) => {
-                await createPeer();
-                await peerConnection.current.setRemoteDescription(offer);
-
-                iceQueue.current.forEach(async (c) => {
-                    await peerConnection.current.addIceCandidate(c);
+            // 🔥 Create peer connection
+            const createPeer = () => {
+                const peer = new RTCPeerConnection({
+                    iceServers: [
+                        { urls: "stun:stun.l.google.com:19302" }
+                    ],
                 });
-                iceQueue.current.length = 0;
+                if (!stream) return;
+                // Add tracks
+                stream.getTracks().forEach((track) => {
+                    peer.addTrack(track, stream);
+                });
+                // Remote stream
+                peer.ontrack = (event) => {
+                    // if (remoteVideo.current && !remoteVideo.current.srcObject) {
+                    remoteVideo.current.srcObject = event.streams[0];
+                    // }
+                };
+                // ICE
+                peer.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        socket.emit("ice-candidate", {
+                            roomId: sessionId,
+                            candidate: event.candidate,
+                        });
+                    }
+                };
+                return peer;
+            };
+            // 🟢 When both users joined
+            socket.on("ready", async () => {
+                pc.current = createPeer();
 
-                const answer = await peerConnection.current.createAnswer();
-                await peerConnection.current.setLocalDescription(answer);
+                const offer = await pc.current.createOffer();
+                await pc.current.setLocalDescription(offer);
 
-                socketRef.current.emit("answer", { sessionId, answer });
+                socket.emit("offer", {
+                    roomId: sessionId,
+                    offer,
+                });
             });
 
-            newSocket.on("answer", async (answer) => {
-                await peerConnection.current.setRemoteDescription(answer);
-                iceQueue.current.forEach(async (c) => {
-                    await peerConnection.current.addIceCandidate(c);
+            // 📩 Receive offer
+            socket.on("offer", async (offer) => {
+                pc.current = createPeer();
+
+                await pc.current.setRemoteDescription(offer);
+
+                const answer = await pc.current.createAnswer();
+                await pc.current.setLocalDescription(answer);
+
+                socket.emit("answer", {
+                    roomId: sessionId,
+                    answer,
                 });
-                iceQueue.current.length = 0;
             });
 
-            newSocket.on("start-call", async ({ isCaller }) => {
-                console.log("Start call, caller:", isCaller);
+            // 📩 Receive answer
+            socket.on("answer", async (answer) => {
+                await pc.current.setRemoteDescription(answer);
+            });
 
-                await createPeer();
-
-                if (isCaller) {
-                    const offer = await peerConnection.current.createOffer();
-                    await peerConnection.current.setLocalDescription(offer);
-
-                    socketRef.current.emit("offer", { sessionId, offer });
+            // 📩 ICE
+            socket.on("ice-candidate", async (candidate) => {
+                if (candidate) {
+                    await pc.current.addIceCandidate(candidate);
                 }
             });
+
+            // newSocket.on("offer", async (offer) => {
+            //     await createPeer();
+            //     await peerConnection.current.setRemoteDescription(offer);
+
+            //     iceQueue.current.forEach(async (c) => {
+            //         await peerConnection.current.addIceCandidate(c);
+            //     });
+            //     iceQueue.current.length = 0;
+
+            //     const answer = await peerConnection.current.createAnswer();
+            //     await peerConnection.current.setLocalDescription(answer);
+
+            //     socketRef.current.emit("answer", { sessionId, answer });
+            // });
+
+            // newSocket.on("answer", async (answer) => {
+            //     await peerConnection.current.setRemoteDescription(answer);
+            //     iceQueue.current.forEach(async (c) => {
+            //         await peerConnection.current.addIceCandidate(c);
+            //     });
+            //     iceQueue.current.length = 0;
+            // });
+
+            // newSocket.on("start-call", async ({ isCaller }) => {
+            //     console.log("Start call, caller:", isCaller);
+
+            //     await createPeer();
+
+            //     if (isCaller) {
+            //         const offer = await peerConnection.current.createOffer();
+            //         await peerConnection.current.setLocalDescription(offer);
+
+            //         socketRef.current.emit("offer", { sessionId, offer });
+            //     }
+            // });
 
             // newSocket.on("ice-candidate", async (candidate) => {
             //     if (candidate) {
             //         await peerConnection.current.addIceCandidate(candidate);
             //     }
             // });
-            newSocket.on("ice-candidate", async (candidate) => {
-                if (!peerConnection.current) return;
+            // newSocket.on("ice-candidate", async (candidate) => {
+            //     if (!peerConnection.current) return;
 
-                if (peerConnection.current.remoteDescription) {
-                    await peerConnection.current.addIceCandidate(candidate);
-                } else {
-                    iceQueue.current.push(candidate);
-                }
-            });
+            //     if (peerConnection.current.remoteDescription) {
+            //         await peerConnection.current.addIceCandidate(candidate);
+            //     } else {
+            //         iceQueue.current.push(candidate);
+            //     }
+            // });
         };
 
         init();
@@ -110,50 +181,24 @@ export default function VideoCall({ sessionId }) {
         return () => socketRef.current?.disconnect();
     }, [sessionId]);
 
-    const startMedia = async () => {
-        try {
-            const media = await navigator.mediaDevices.getUserMedia({
-                video: true,
-                audio: true,
-            });
+    // const startMedia = async () => {
+    //     try {
+    //         const media = await navigator.mediaDevices.getUserMedia({
+    //             video: true,
+    //             audio: true,
+    //         });
 
-            setStream(media);
+    //         setStream(media);
 
-            if (localVideo.current) {
-                localVideo.current.srcObject = media;
-            }
-        } catch (err) {
-            console.error("Camera error:", err);
-        }
-    };
+    //         if (localVideo.current) {
+    //             localVideo.current.srcObject = media;
+    //         }
+    //     } catch (err) {
+    //         console.error("Camera error:", err);
+    //     }
+    // };
 
-    // 🔥 Create peer connection
-    const createPeer = async () => {
-        peerConnection.current = new RTCPeerConnection({
-            iceServers: [
-                { urls: "stun:stun.l.google.com:19302" }
-            ],
-        });
-        if (!stream) return;
-        stream.getTracks().forEach((track) => {
-            peerConnection.current.addTrack(track, stream);
-        });
 
-        peerConnection.current.ontrack = (event) => {
-            if (remoteVideo.current && !remoteVideo.current.srcObject) {
-                remoteVideo.current.srcObject = event.streams[0];
-            }
-        };
-
-        peerConnection.current.onicecandidate = (event) => {
-            if (event.candidate) {
-                socketRef.current.emit("ice-candidate", {
-                    sessionId,
-                    candidate: event.candidate,
-                });
-            }
-        };
-    };
     // send offer
     // 📞 Start Call (Caller)
     // const startCall = async () => {

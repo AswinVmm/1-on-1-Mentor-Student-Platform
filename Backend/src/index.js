@@ -27,44 +27,26 @@ const io = new Server(server, {
     },
 });
 
+
 io.use(socketAuth);
 const sessionCodeMap = {};
 io.on("connection", (socket) => {
-    console.log("User connected:", socket.user?.userId);
+    console.log("User connected:", socket.id);
 
     // Join session room
-    socket.on("join-room", async (sessionId) => {
-        socket.join(sessionId);
-        console.log("Joined room:", sessionId);
-        const clients = io.sockets.adapter.rooms.get(sessionId);
+    socket.on("join-room", (roomId) => {
+        socket.join(roomId);
+        console.log("Joined room:", roomId);
+        const clients = io.sockets.adapter.rooms.get(roomId);
 
         if (clients && clients.size === 2) {
-            const users = Array.from(clients);
+            // Tell both users to start
+            io.to(roomId).emit("ready");
+            // const users = Array.from(clients);
 
-            // First user becomes caller
-            io.to(users[0]).emit("start-call", { isCaller: true });
-            io.to(users[1]).emit("start-call", { isCaller: false });
-        }
-
-        socket.to(sessionId).emit("user-joined");
-
-        // 🔥 Send previous messages
-        const messages = await prisma.message.findMany({
-            where: { sessionId },
-            orderBy: { createdAt: "asc" },
-        });
-
-        socket.emit("chat-history", messages);
-
-        // 🔥 System message
-        socket.to(sessionId).emit("system-message", {
-            content: `${socket.user.userId} joined`,
-            createdAt: new Date(),
-        });
-
-        // Send existing code
-        if (sessionCodeMap[sessionId]) {
-            socket.emit("code-update", sessionCodeMap[sessionId]);
+            // // First user becomes caller
+            // io.to(users[0]).emit("start-call", { isCaller: true });
+            // io.to(users[1]).emit("start-call", { isCaller: false });
         }
     });
 
@@ -82,52 +64,75 @@ io.on("connection", (socket) => {
     socket.on("ice-candidate", ({ sessionId, candidate }) => {
         socket.to(sessionId).emit("ice-candidate", candidate);
     });
-
-    // socket.on("join-video-room", (sessionId) => {
-    //     socket.join(sessionId);
-    //     console.log("Joined video room:", sessionId);
-    // });
-    // 🔥 SEND MESSAGE
-    socket.on("send-message", ({ sessionId, content }) => {
-        io.to(sessionId).emit("receive-message", {
-
-            content,
-            sessionId,
-            senderId: socket.user.userId,
-
-        });
-    });
-
     // 🔥 DISCONNECT
-    // socket.on("disconnect", () => {
-    //     console.log("User disconnected");
-    // });
-    socket.on("end-call", (sessionId) => {
-        io.to(sessionId).emit("call-ended");
+    socket.on("disconnect", () => {
+        console.log("User disconnected");
     });
 
-    // Handle code changes
-    socket.on("code-change", ({ sessionId, code }) => {
-        // Throttle updates to prevent excessive emissions
-        const now = Date.now();
-        if (!global.lastUpdateRef) global.lastUpdateRef = { current: 0 };
-        if (now - global.lastUpdateRef.current < 200) return;
-        global.lastUpdateRef.current = now;
+    // socket.to(roomId).emit("user-joined");
 
-        // 🧠 Last-write-wins strategy
-        sessionCodeMap[sessionId] = code;
-
-        socket.to(sessionId).emit("code-update", code);
+    // 🔥 Send previous messages
+    const messages = prisma.message.findMany({
+        where: { sessionId },
+        orderBy: { createdAt: "asc" },
     });
 
-    socket.on("cursor-move", (data) => {
-        socket.to(data.sessionId).emit("cursor-update", data.position);
+    socket.emit("chat-history", messages);
+
+    // 🔥 System message
+    socket.to(sessionId).emit("system-message", {
+        content: `${socket.user.userId} joined`,
+        createdAt: new Date(),
     });
 
-    socket.on("message", (data) => {
-        console.log(data);
+    // Send existing code
+    if (sessionCodeMap[sessionId]) {
+        socket.emit("code-update", sessionCodeMap[sessionId]);
+    }
+});
+
+// socket.on("join-video-room", (sessionId) => {
+//     socket.join(sessionId);
+//     console.log("Joined video room:", sessionId);
+// });
+// 🔥 SEND MESSAGE
+socket.on("send-message", ({ sessionId, content }) => {
+    io.to(sessionId).emit("receive-message", {
+
+        content,
+        sessionId,
+        senderId: socket.user.userId,
+
     });
 });
+
+
+// socket.on("end-call", (sessionId) => {
+//     io.to(sessionId).emit("call-ended");
+// });
+
+// Handle code changes
+socket.on("code-change", ({ sessionId, code }) => {
+    // Throttle updates to prevent excessive emissions
+    const now = Date.now();
+    if (!global.lastUpdateRef) global.lastUpdateRef = { current: 0 };
+    if (now - global.lastUpdateRef.current < 200) return;
+    global.lastUpdateRef.current = now;
+
+    // 🧠 Last-write-wins strategy
+    sessionCodeMap[sessionId] = code;
+
+    socket.to(sessionId).emit("code-update", code);
+});
+
+socket.on("cursor-move", (data) => {
+    socket.to(data.sessionId).emit("cursor-update", data.position);
+});
+
+socket.on("message", (data) => {
+    console.log(data);
+});
+
 
 // ✅ Middlewares
 // app.use(cors());
