@@ -7,6 +7,7 @@ const socketAuth = (socket, next) => {
         if (!token) return next(new Error("No token"));
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log("DECODED:", decoded); // 🔥 DEBUG
 
         socket.user = {
             userId: decoded.userId,

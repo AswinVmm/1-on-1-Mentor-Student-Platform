@@ -39,7 +39,7 @@ export default function Login() {
         if (res.ok) {
             localStorage.setItem("token", data.token);
             localStorage.setItem("role", data.role);
-            localStorage.setItem("userId", data.id);
+            localStorage.setItem("userId", data.user.id);
 
             if (data.role === "MENTOR") {
                 router.push("/mentor");
