@@ -32,7 +32,7 @@ export default function VideoCall({ sessionId }) {
                 video: true,
                 audio: true,
             });
-            // setStream(stream);
+            setStream(stream);
 
             // if (localVideo.current) {
             localVideo.current.srcObject = stream;

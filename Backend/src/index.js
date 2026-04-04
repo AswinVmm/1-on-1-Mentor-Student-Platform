@@ -30,6 +30,7 @@ const io = new Server(server, {
 
 io.use(socketAuth);
 const sessionCodeMap = {};
+
 io.on("connection", (socket) => {
     console.log("User connected:", socket.id);
 
@@ -105,18 +106,18 @@ io.on("connection", (socket) => {
     //     orderBy: { createdAt: "asc" },
     // });
 
-    socket.emit("chat-history", messages);
+    // socket.emit("chat-history", messages);
 
     // 🔥 System message
-    socket.to(sessionId).emit("system-message", {
-        content: `${socket.user.userId} joined`,
-        createdAt: new Date(),
-    });
+    // socket.to(sessionId).emit("system-message", {
+    //     content: `${socket.user.userId} joined`,
+    //     createdAt: new Date(),
+    // });
 
     // Send existing code
-    if (sessionCodeMap[sessionId]) {
-        socket.emit("code-update", sessionCodeMap[sessionId]);
-    }
+    // if (sessionCodeMap[sessionId]) {
+    //     socket.emit("code-update", sessionCodeMap[sessionId]);
+    // }
 });
 
 // socket.on("join-video-room", (sessionId) => {
