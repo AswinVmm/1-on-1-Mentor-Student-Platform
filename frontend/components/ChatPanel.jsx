@@ -7,9 +7,6 @@ export default function ChatPanel({ sessionId }) {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const [socket, setSocket] = useState(null);
-    // const myId = typeof window !== "undefined"
-    //     ? localStorage.getItem("userId")
-    //     : null;
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -38,9 +35,6 @@ export default function ChatPanel({ sessionId }) {
         });
 
         return () => {
-            // newSocket.off("chat-history");
-            // newSocket.off("receive-message");
-            // newSocket.off("system-message");
             newSocket.disconnect();
         };
     }, [sessionId]);
@@ -55,49 +49,36 @@ export default function ChatPanel({ sessionId }) {
 
         setInput("");
     };
-    //     style = {{ width: "300px", borderLeft: "1px solid #ccc" }
-    // }
+
     return (
         <div className="flex flex-col h-full ">
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-gray-50">
                 {messages.map((msg, i) => (
                     <div key={i} className={`flex ${String(msg.senderId) === String(myId)
-                        // ? "text-right"
-                        // : "text-left"
+
                         ? "justify-end"
                         : "justify-start"
                         }`}>
                         <div
-                            className={`px-3 py-2 rounded-lg max-w-[70%] ${String(msg.senderId) === String(myId)
+                            className={`px-3 py-2 rounded-xl max-w-[70%] shadow ${String(msg.senderId) === String(myId)
                                 ? "bg-blue-500 text-white"
-                                : "bg-gray-200 text-black"
+                                : "bg-white"
                                 }`}
                         >
-                            {msg.content}
-                            <div className="text-[10px] opacity-70">
-                                {new Date(msg.createdAt).toLocaleTimeString()}
+                            <div>{msg.content}</div>
+                            <div className="text-[10px] opacity-60 text-right mt-1">
+                                {msg.createdAt
+                                    ? new Date(msg.createdAt).toLocaleTimeString() : ""}
                             </div>
                         </div>
-                        {/* <span className="bg-gray-200 px-2 py-1 rounded">
-                            {msg.content}
-                        </span> */}
-                        {/* <b>{msg.senderId || "System"}:</b> {msg.content} */}
-                        {/* <div style={{ fontSize: "10px" }}>
-                            {new Date(msg.createdAt).toLocaleTimeString()}
-                        </div> */}
+
                     </div>
                 ))}
             </div>
 
-            {/* <input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Type message..."
-            />
-            <button onClick={sendMessage}>Send</button> */}
-            <div className="flex">
-                <input className="flex-1 border p-2" value={input}
-                    onChange={(e) => setInput(e.target.value)} />
+            <div className="flex border-t">
+                <input className="flex-1 p-2 outline-none" value={input}
+                    onChange={(e) => setInput(e.target.value)} placeholder="Type your message..." />
                 <button className="bg-blue-500 text-white px-4" onClick={sendMessage}>
                     Send
                 </button>

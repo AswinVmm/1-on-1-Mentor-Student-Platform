@@ -153,15 +153,13 @@ export default function VideoCall({ sessionId }) {
     };
 
     return (
-        <div className="relative h-[300px] bg-black">
+        <div className="relative bg-black rounded-xl overflow-hidden">
             {/* Remote video (BIG) */}
-            <h3>Video Call</h3>
-
             <video
                 ref={remoteVideo}
                 autoPlay
                 playsInline
-                className="w-full h-full object-cover"
+                className="w-full h-[250px] object-cover"
             />
 
             {/* Local video (SMALL corner) */}
@@ -169,25 +167,25 @@ export default function VideoCall({ sessionId }) {
                 ref={localVideo}
                 autoPlay
                 muted
-                className="w-40 h-32 absolute bottom-2 right-2 border-2"
+                className="w-32 h-24 absolute bottom-3 right-3 border-2 rounded-lg"
             />
-            <div>
+            <div className="flex justify-center gap-3 p-3 bg-gray-900">
 
-                <button onClick={toggleMic}>Mic
-                    {micOn ? "Mute Mic" : "Unmute Mic"}
+                <button onClick={toggleMic} className="bg-gray-700 text-white px-3 py-1 rounded">Mic
+                    {micOn ? "Mute" : "Unmute"}
                 </button>
-                <button onClick={toggleCam}>Camera
-                    {camOn ? "Turn Off Cam" : "Turn On Cam"}
+                <button onClick={toggleCam} className="bg-gray-700 text-white px-3 py-1 rounded">Camera
+                    {camOn ? "Camera Off" : "Camera On"}
                 </button>
                 <button
-                    className="bg-red-500 text-white px-4 py-2 rounded"
+                    className="bg-red-600 text-white px-4 py-1 rounded"
                     onClick={() => {
 
                         socketRef.current?.emit("end-call", sessionId);
                         window.location.href = "/";
                     }}
                 >
-                    End Call
+                    End
                 </button>
             </div>
         </div>

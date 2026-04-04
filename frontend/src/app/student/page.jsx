@@ -78,42 +78,47 @@ export default function StudentDashboard() {
     };
 
     return (
-        <div>
-            <h2>Student Dashboard</h2>
-            <button onClick={handleLogout}>Logout</button>
+        <div className="min-h-screen bg-gray-100 p-6">
+            <div className="max-w-3xl mx-auto bg-white p-6 rounded-2xl shadow-lg">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold">Student Dashboard</h2>
+                    <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-1 rounded">
+                        Logout
+                    </button>
+                </div>
+                {/* <br /><br /> */}
+                <div className="flex gap-2 mb-6">
+                    <input
+                        className="flex-1 border p-2 rounded"
+                        placeholder="Enter Join Code"
+                        onChange={(e) => setCode(e.target.value)}
+                    />
 
-            <br /><br />
-            <input
-                placeholder="Enter Join Code"
-                onChange={(e) => setCode(e.target.value)}
-            />
+                    <button onClick={joinSession} className="bg-blue-500 text-white px-4 rounded">
+                        Join
+                    </button>
+                </div>
+                <h3 className="font-semibold mb-3">Active Sessions</h3>
 
-            <button onClick={joinSession}>
-                Join Session
-            </button>
+                {sessions.length === 0 ? (
+                    <p className="text-gray-500">No active sessions</p>
+                ) : (
+                    sessions.map((session, index) => (
+                        <div key={index} className="flex justify-between items-center border p-3 rounded mb-2">
+                            <p className="font-medium"><b>{session.title}</b></p>
 
-            <h3>Active Sessions</h3>
+                            <button
+                                onClick={() => joinSessionByCode(session.joinCode)}
+                                className="bg-green-500 text-white px-3 py-1 rounded"
+                            // onClick={() => router.push(`/session/${session.code}`)}
+                            >
+                                Join
+                            </button>
+                        </div>
+                    ))
+                )}
 
-            {sessions.length === 0 ? (
-                <p>No active sessions</p>
-            ) : (
-                sessions.map((session, index) => (
-                    <div key={index} style={{ marginBottom: "10px" }}>
-                        <p><b>{session.title}</b></p>
-
-                        <button
-                            onClick={() => joinSessionByCode(session.joinCode)}
-                        // onClick={() => router.push(`/session/${session.code}`)}
-                        >
-                            Join
-                        </button>
-                    </div>
-                ))
-            )}
-
-            {/* <button onClick={joinSession}>
-                Join Session
-            </button> */}
+            </div>
         </div>
     );
 }

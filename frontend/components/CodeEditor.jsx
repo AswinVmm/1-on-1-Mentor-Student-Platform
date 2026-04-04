@@ -3,8 +3,6 @@ import Editor from "@monaco-editor/react";
 import { useEffect, useRef, useState } from "react";
 import * as Y from "yjs";
 import { WebsocketProvider } from "y-websocket";
-// import { MonacoBinding } from "y-monaco";
-// import * as monaco from "monaco-editor";
 import { io } from "socket.io-client";
 
 export default function CodeEditor({ sessionId }) {
@@ -21,8 +19,6 @@ export default function CodeEditor({ sessionId }) {
 
         const init = async () => {
             const { MonacoBinding } = await import("y-monaco");
-            // const monaco = await import("monaco-editor");
-            // const { MonacoBinding } = await import("y-monaco");---------------------
 
             const ydoc = new Y.Doc();
             const provider = new WebsocketProvider(
@@ -34,12 +30,6 @@ export default function CodeEditor({ sessionId }) {
             const yText = ydoc.getText("monaco");
             editor = editorRef.current;
             if (!editor) return;
-
-            // editor = monaco.editor.create(containerRef.current, {
-            //     value: "",
-            //     language: "javascript",
-            //     theme: "vs-dark",
-            // });-----------------------------------------------------------------
 
             new MonacoBinding(
                 yText,
@@ -72,14 +62,11 @@ export default function CodeEditor({ sessionId }) {
             setCode(newCode);
         });
 
-        // socket.emit("cursor-move", { sessionId, position });
-
         return () => {
             newSocket.off("code-update");
         };
     }, [sessionId]);
 
-    // 🔥 Throttled update (VERY IMPORTANT)
     const handleChange = (value) => {
         const now = Date.now();
 
@@ -95,17 +82,18 @@ export default function CodeEditor({ sessionId }) {
     };
 
     return (
-        <div className="bg-emerald-400 h-full">
-            <select onChange={(e) => setLanguage(e.target.value)}>
-                <option value="javascript">JavaScript</option>
-                <option value="python">Python</option>
-                <option value="cpp">C++</option>
-            </select>
+        <div className="h-full flex flex-col">
+            <div className="p-2 border-b bg-gray-50">
+                <select className="border p-1 rounded" onChange={(e) => setLanguage(e.target.value)}>
+                    <option value="javascript">JavaScript</option>
+                    <option value="python">Python</option>
+                    <option value="cpp">C++</option>
+                </select>
+            </div>
 
             <Editor
                 onMount={(editor) => (editorRef.current = editor)}
-                className="bg-cyan-400 h-[800px] "
-                // height="800px"
+                className="flex-1"
                 language={language}
                 value={code}
                 onChange={handleChange}

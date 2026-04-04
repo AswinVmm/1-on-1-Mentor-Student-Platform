@@ -52,44 +52,43 @@ export default function Login() {
     };
 
     return (
-        // style = {{ padding: "20px" }}
-        <div >
-            <h2 className="bg-amber-400">Login</h2>
+        <div className="h-screen flex items-center justify-center bg-gray-100">
+            <div className="bg-white p-8 rounded-2xl shadow-xl w-[350px]">
+                <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
 
-            <input
-                placeholder="Email"
-                onChange={(e) =>
-                    setForm({ ...form, email: e.target.value })
-                }
-            />
+                <input
+                    className="w-full border p-2 mb-4 rounded"
+                    placeholder="Email"
+                    onChange={(e) =>
+                        setForm({ ...form, email: e.target.value })
+                    }
+                />
 
-            <br /><br />
+                {/* <br /><br /> */}
 
-            <input
-                type="password"
-                placeholder="Password"
-                onChange={(e) =>
-                    setForm({ ...form, password: e.target.value })
-                }
-            />
+                <input
+                    type="password"
+                    className="w-full border p-2 mb-4 rounded"
+                    placeholder="Password"
+                    onChange={(e) =>
+                        setForm({ ...form, password: e.target.value })
+                    }
+                />
 
-            <br /><br />
+                {/* <br /><br /> */}
 
-            <button onClick={handleLogin}>Login</button>
+                <button onClick={handleLogin} className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Login</button>
 
-            <p style={{ marginTop: "15px" }}>
-                New user?{" "}
-                <span
-                    style={{
-                        color: "blue",
-                        cursor: "pointer",
-                        textDecoration: "underline",
-                    }}
-                    onClick={() => router.push("/signup")}
-                >
-                    Register here
-                </span>
-            </p>
+                <p className="text-sm text-center mt-4">
+                    New user?{" "}
+                    <span
+                        className="text-blue-500 cursor-pointer underline"
+                        onClick={() => router.push("/signup")}
+                    >
+                        Register
+                    </span>
+                </p>
+            </div>
         </div>
     );
 }
