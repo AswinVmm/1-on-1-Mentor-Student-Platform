@@ -167,7 +167,7 @@ export default function VideoCall({ sessionId }) {
                 ref={localVideo}
                 autoPlay
                 muted
-                className="w-32 h-24 mb-2 absolute bottom-3 right-3 border-2 rounded-lg"
+                className="w-32 h-24 absolute bottom-5 right-3 border-2 rounded-lg"
             />
             <div className="flex justify-center gap-3 p-3 bg-gray-900">
 
